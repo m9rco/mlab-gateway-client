@@ -312,7 +312,8 @@ if [[ -n "$release_dir" ]]; then
 else
   command -v curl >/dev/null || die '匿名 HTTPS 下载需要 curl'
   for asset in "${assets[@]}"; do
-    curl --fail --show-error --silent --location --proto '=https' --proto-redir '=https' --tlsv1.2 \
+    curl --http1.1 --connect-timeout 15 --max-time 180 --retry 2 --retry-delay 2 \
+      --fail --show-error --silent --location --proto '=https' --proto-redir '=https' --tlsv1.2 \
       "https://github.com/${repo}/releases/download/${version}/${asset}" --output "$stage/$asset" || die '公开发行包下载失败；请检查网络、仓库和版本'
   done
 fi
