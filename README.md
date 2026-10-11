@@ -16,7 +16,7 @@ Linux client 的公开安装入口。client 在本机提供 Models / Responses A
 需要 Linux、Bash、curl、tar、sha256sum、常见 coreutils 与可信 CA 证书。公开下载无需 GitHub 登录。将 `YOUR_SERVER` 替换为管理员提供的实际域名，然后执行：
 
 ```bash
-(set -eu; client_script="$(mktemp)"; trap 'rm -f "$client_script"' EXIT; curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --tlsv1.2 https://raw.githubusercontent.com/m9rco/mlab-gateway-client/v0.3.2/install-client.sh --output "$client_script"; bash "$client_script" --server-url wss://YOUR_SERVER/mlab-tunnel)
+(set -eu; client_script="$(mktemp)"; trap 'rm -f "$client_script"' EXIT; curl --http1.1 --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --tlsv1.2 https://raw.githubusercontent.com/m9rco/mlab-gateway-client/v0.3.2/install-client.sh --output "$client_script"; bash "$client_script" --server-url wss://YOUR_SERVER/mlab-tunnel)
 ```
 
 安装器从 `/dev/tty` 隐藏读取连接 Token，不会将它放入命令行参数。它下载并校验同版本附件，生成独立的本地 API Key，保存连接 Token，再配置并按服务模式启动 client。WSS 验证证书链与主机名，生产环境不能跳过 TLS 验证。
