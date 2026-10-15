@@ -16,7 +16,7 @@ Linux client 的公开安装入口。client 在本机提供 Models / Responses A
 需要 Linux、Bash、curl、tar、sha256sum、常见 coreutils 与可信 CA 证书。公开下载无需 GitHub 登录。将 `YOUR_SERVER` 替换为管理员提供的实际域名，然后执行：
 
 ```bash
-(set -eu; client_script="$(mktemp)"; trap 'rm -f "$client_script"' EXIT; curl --http1.1 --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --tlsv1.2 https://raw.githubusercontent.com/m9rco/mlab-gateway-client/bootstrap-v0.3.2.1/install-client.sh --output "$client_script"; bash "$client_script" --server-url wss://YOUR_SERVER/mlab-tunnel)
+(set -eu; client_script="$(mktemp)"; trap 'rm -f "$client_script"' EXIT; curl --http1.1 --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --tlsv1.2 https://raw.githubusercontent.com/m9rco/mlab-gateway-client/v0.3.5/install-client.sh --output "$client_script"; bash "$client_script" --server-url wss://YOUR_SERVER/mlab-tunnel)
 ```
 
 安装器从 `/dev/tty` 隐藏读取连接 Token，不会将它放入命令行参数。它下载并校验同版本附件，生成独立的本地 API Key，保存连接 Token，再配置并按服务模式启动 client。WSS 验证证书链与主机名，生产环境不能跳过 TLS 验证。
@@ -77,3 +77,11 @@ curl --fail --silent --show-error \
 Docker 中安装时指定 `--service none`，随后以前台 `client serve` 运行；无需容器中的 systemd。容器内的 `127.0.0.1` 指向容器自身，本机应用与 client 应处在同一网络环境中。
 
 许可证：[MIT](LICENSE)。
+
+## v0.3.5 诊断与兼容性
+
+原生客户端增加已鉴权的本机 `/diagnostics`，显示当前 WSS 心跳 RTT、最近 32 个样本的统计及年龄，断线不返回旧样本，重连重新采样。它与本机 Responses 使用相同的本地 Bearer key。服务端与客户端补齐固定 Codex CLI 0.162.1 消费的模型、推理、安全缓冲和基础额度响应头；v1 隧道协议不变。
+
+需要 npm 包装器和逐跳诊断时使用 `@m9rco/mcodex`。`mcodex ping` 的 HK→SG 探针需要网关管理员先安装对应 nginx 配置；它区分相邻 TCP/TLS 建连和累计响应头耗时，并不会把它们误报为单跳网络 RTT。`ping --compare <WSS URL>` 可从实际客户端所在地比较中转与直连，比较目标须属于同一受信任网关并接受同一个 Token。
+
+默认上限为每次请求 1 MiB。当前完整验收范围为 HTTP Responses/SSE、本地工具、本地摘要压缩、resume、取消和断线不重放；不代表支持所有未来 Codex 或公共 OpenAI API 功能。
