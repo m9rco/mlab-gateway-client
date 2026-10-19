@@ -6,7 +6,7 @@ set -euo pipefail
 umask 077
 
 repo=m9rco/mlab-gateway-client
-version=v0.3.5
+version=v0.4.1
 bin_dir="${HOME}/.local/bin"
 config_dir="${XDG_CONFIG_HOME:-${HOME}/.config}/mlab-gateway-client"
 release_dir=""
@@ -48,7 +48,7 @@ trap 'exit 143' TERM
 usage() {
   cat <<'USAGE'
 Usage: bash install-client.sh --server-url wss://YOUR_SERVER/mlab-tunnel [options]
-  --version v0.3.5          Public release tag (default: v0.3.5)
+  --version v0.4.1          Public release tag (default: v0.4.1)
   --repo OWNER/REPO         Default: m9rco/mlab-gateway-client
   --release-dir PATH       Offline archive, SHA256SUMS and install.sh directory
   --bin-dir PATH           Default: ~/.local/bin

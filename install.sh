@@ -4,7 +4,7 @@ set -euo pipefail
 umask 077
 
 repo="m9rco/mlab-gateway-client"
-version="v0.3.5"
+version="v0.4.1"
 role="client"
 bin_dir="${HOME}/.local/bin"
 config_dir=""
@@ -28,7 +28,7 @@ trap 'exit 143' TERM
 usage() {
   cat <<'USAGE'
 Usage: bash install.sh [options]
-  --version v0.3.5       Release tag (default: v0.3.5)
+  --version v0.4.1       Release tag (default: v0.4.1)
   --role server|client  Deployment role (default: client)
   --repo OWNER/REPO      Release repository
   --bin-dir PATH         Binary destination (default: ~/.local/bin)

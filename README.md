@@ -16,7 +16,7 @@ Linux client 的公开安装入口。client 在本机提供 Models / Responses A
 需要 Linux、Bash、curl、tar、sha256sum、常见 coreutils 与可信 CA 证书。公开下载无需 GitHub 登录。将 `YOUR_SERVER` 替换为管理员提供的实际域名，然后执行：
 
 ```bash
-(set -eu; client_script="$(mktemp)"; trap 'rm -f "$client_script"' EXIT; curl --http1.1 --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --tlsv1.2 https://raw.githubusercontent.com/m9rco/mlab-gateway-client/v0.3.5/install-client.sh --output "$client_script"; bash "$client_script" --server-url wss://YOUR_SERVER/mlab-tunnel)
+(set -eu; client_script="$(mktemp)"; trap 'rm -f "$client_script"' EXIT; curl --http1.1 --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --tlsv1.2 https://raw.githubusercontent.com/m9rco/mlab-gateway-client/v0.4.1/install-client.sh --output "$client_script"; bash "$client_script" --server-url wss://YOUR_SERVER/mlab-tunnel)
 ```
 
 安装器从 `/dev/tty` 隐藏读取连接 Token，不会将它放入命令行参数。它下载并校验同版本附件，生成独立的本地 API Key，保存连接 Token，再配置并按服务模式启动 client。WSS 验证证书链与主机名，生产环境不能跳过 TLS 验证。
@@ -84,4 +84,8 @@ Docker 中安装时指定 `--service none`，随后以前台 `client serve` 运�
 
 需要 npm 包装器和逐跳诊断时使用 `@m9rco/mcodex`。`mcodex ping` 的 HK→SG 探针需要网关管理员先安装对应 nginx 配置；它区分相邻 TCP/TLS 建连和累计响应头耗时，并不会把它们误报为单跳网络 RTT。`ping --compare <WSS URL>` 可从实际客户端所在地比较中转与直连，比较目标须属于同一受信任网关并接受同一个 Token。
 
-默认上限为每次请求 1 MiB。当前完整验收范围为 HTTP Responses/SSE、本地工具、本地摘要压缩、resume、取消和断线不重放；不代表支持所有未来 Codex 或公共 OpenAI API 功能。
+0.4.1 新客户端与服务端协商 v2 隧道后默认每次请求最多 16 MiB，硬上限 32 MiB；与旧端连接时保留 v1 的 1 MiB 上限并明确返回 413。现有配置中显式的 `max_body_bytes` 会保留，升级前应核对两端限制。请求体字节上限与模型 token 窗口分别控制，不截断消息、不自动重放。大请求在读取前按预算准入，预算繁忙返回 429。当前完整验收范围为 HTTP Responses/SSE、本地工具、本地摘要压缩、resume、取消和断线不重放；不代表支持所有未来 Codex 或公共 OpenAI API 功能。
+
+## v0.4.1 版本隔离与长请求
+
+支持官方 Codex 0.162.1 和 0.163.0 的兼容测试。mcodex 可显式选择独立安装的 Codex，引擎、包装器和网关分别维护；默认版本在测试后更新，不会自动追随最新版本。网关保留旧 v1 编码及连接兼容性，新 v2 仅在已鉴权 WSS 建连时协商请求体上限。诊断会显示实际协议和有效上限；内存预算只限制原始请求体工作集，不代表整个进程 RSS。
