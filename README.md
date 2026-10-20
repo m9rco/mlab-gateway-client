@@ -16,7 +16,7 @@ Linux client 的公开安装入口。client 在本机提供 Models / Responses A
 需要 Linux、Bash、curl、tar、sha256sum、常见 coreutils 与可信 CA 证书。公开下载无需 GitHub 登录。将 `YOUR_SERVER` 替换为管理员提供的实际域名，然后执行：
 
 ```bash
-(set -eu; client_script="$(mktemp)"; trap 'rm -f "$client_script"' EXIT; curl --http1.1 --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --tlsv1.2 https://raw.githubusercontent.com/m9rco/mlab-gateway-client/v0.4.1/install-client.sh --output "$client_script"; bash "$client_script" --server-url wss://YOUR_SERVER/mlab-tunnel)
+(set -eu; client_script="$(mktemp)"; trap 'rm -f "$client_script"' EXIT; curl --http1.1 --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --tlsv1.2 https://raw.githubusercontent.com/m9rco/mlab-gateway-client/v0.4.2/install-client.sh --output "$client_script"; bash "$client_script" --server-url wss://YOUR_SERVER/mlab-tunnel)
 ```
 
 安装器从 `/dev/tty` 隐藏读取连接 Token，不会将它放入命令行参数。它下载并校验同版本附件，生成独立的本地 API Key，保存连接 Token，再配置并按服务模式启动 client。WSS 验证证书链与主机名，生产环境不能跳过 TLS 验证。
@@ -89,3 +89,9 @@ Docker 中安装时指定 `--service none`，随后以前台 `client serve` 运�
 ## v0.4.1 版本隔离与长请求
 
 支持官方 Codex 0.162.1 和 0.163.0 的兼容测试。mcodex 可显式选择独立安装的 Codex，引擎、包装器和网关分别维护；默认版本在测试后更新，不会自动追随最新版本。网关保留旧 v1 编码及连接兼容性，新 v2 仅在已鉴权 WSS 建连时协商请求体上限。诊断会显示实际协议和有效上限；内存预算只限制原始请求体工作集，不代表整个进程 RSS。
+
+## v0.4.2 慢上传与错误定位
+
+修复大请求尚在写入时误判 Pong 超时而断线；Ping 写出后才开始等待 Pong，写入另有默认 30 秒预算。HTTP 取消后排队或写入中的原始数据继续占用内存许可，写出或丢弃后才释放。真实断线仍不重放已提交请求。服务端默认心跳失联预算为 45 秒，单独扩大客户端写入预算不能允许无限慢上传。
+
+本机诊断新增安全的最近建连失败阶段与固定错误码，显示已鉴权握手观察到的服务端版本。握手连接数量/帧预留预算 429 与请求体 413、模型上下文超限不同。默认服务端 128 MiB 请求预算将其中 64 MiB 用于连接帧预留，16 MiB v2 隧道可预留 4 条；比较探测占两条，不盲目扩大限制。
